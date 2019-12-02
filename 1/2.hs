@@ -5,6 +5,5 @@ main = do
     putStrLn $ show fuel
 
 massToFuel :: Integral a => a -> a
-massToFuel m    | fuel <= 0 = 0
-                | otherwise = fuel + massToFuel fuel
-            where fuel = (flip (-) 2 . flip div 3) m
+massToFuel = sum . takeWhile (>0) . iterate fuel . fuel
+            where fuel = (flip (-) 2 . flip div 3)
