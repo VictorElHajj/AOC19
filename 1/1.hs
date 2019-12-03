@@ -1,9 +1,7 @@
 main = do
     input <- readFile "1-input"
     let masses = map read (lines input) :: [Integer]
-        fuel = sum $ map massToFuel masses
+        fuel = sum $ map (subtract 2 . flip div 3) masses
     putStrLn $ show fuel
 
-massToFuel :: Integral a => a -> a
-massToFuel = flip (-) 2 . flip div 3
-
+massToFuel = (subtract 2 . flip div 3)

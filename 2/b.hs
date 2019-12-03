@@ -2,6 +2,7 @@ import Data.List.Split
 import Data.Sequence
 import Data.Foldable
 import System.Environment
+
 main = do
     input <- readFile "2-input"
     args <- getArgs
@@ -9,13 +10,14 @@ main = do
         fixedArgs = map read args :: [Int]
         fixedInstructions = update 2 (fixedArgs!!1) $ update 1 (fixedArgs!!0) instructions
         result = program 0 fixedInstructions
-    putStrLn . show . head $ toList result
+    print . head $ toList result
 
 program ::Int -> Seq Int -> Seq Int
 program n mem
     | instruction == 1  = program (n+4) $ update adress (a+b) mem
     | instruction == 2  = program (n+4) $ update adress (a*b) mem
-    | otherwise         = mem
+    | instruction == 99 = mem
+    | otherwise         = error "Unknown instruction" 
     where instruction = mem `index` n
           a           = mem `index` (mem `index` (n+1))
           b           = mem `index` (mem `index` (n+2))

@@ -6,4 +6,4 @@ main = do
 
 massToFuel :: Integral a => a -> a
 massToFuel = sum . takeWhile (>0) . iterate fuel . fuel
-            where fuel = (flip (-) 2 . flip div 3)
+            where fuel = (subtract 2 . flip div 3)
