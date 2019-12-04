@@ -18,8 +18,8 @@ wireToSize _ = error "Unknown wire segment"
 
 -- Builds a hashmap with steps and locations
 wirePoints :: Integer -> (Integer,Integer) -> [(Integer, Integer)] -> M.Map (Integer, Integer) Integer
-wirePoints _ _ []                  = M.empty
-wirePoints n acc ((0,0):xs)          = wirePoints n acc xs
+wirePoints _ _ []                      = M.empty
+wirePoints n acc ((0,0):xs)            = wirePoints n acc xs
 wirePoints n (ax, ay) ((x,0):xs) | x>0 = M.insert (ax+1, ay) n $ wirePoints (n+1) (ax+1, ay) ((x-1,0):xs)
                                  | x<0 = M.insert (ax-1, ay) n $ wirePoints (n+1) (ax-1, ay) ((x+1,0):xs)
 wirePoints n (ax, ay) ((0,y):xs) | y>0 = M.insert (ax, ay+1) n $ wirePoints (n+1) (ax, ay+1) ((0,y-1):xs)
