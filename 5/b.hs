@@ -1,58 +1,57 @@
 import Data.List.Split
 import Data.Sequence (index, Seq, update, fromList)
-import Data.Foldable
 
 main = do
     input <- readFile "5-input"
     let instructions = fromList $ map read $ splitOn "," input 
-    result <- program 0 instructions
-    return ()
+        machine      = Machine 0 instructions [5] []
+        result = program machine
+    print $ output result
 
 -- N is the instruction pointer. Mem is the shared memory/instructions
-program ::Int -> Seq Int -> IO (Seq Int)
-program n mem
+program :: Machine -> Machine
+program m@(Machine ip mem i o) = case opcode of
     -- Add
-    | opcode ins 1  = program (n+4) $ update (adress 3) (arg 1 + arg 2) mem
+    01  -> program $ Machine (ip+4) (update (adress 3) (arg 1 + arg 2) mem) i o
     -- Multiply
-    | opcode ins 2  = program (n+4) $ update (adress 3) (arg 1 * arg 2) mem
+    02  -> program $ Machine (ip+4) (update (adress 3) (arg 1 * arg 2) mem) i o
     -- Input
-    | opcode ins 3  = do
-                      input <- getLine
-                      let parsed = read input :: Int
-                      program (n+2) $ update (adress 1) parsed mem
+    03  -> program $ Machine (ip+2) (update (adress 1) (head i) mem) (tail i) o
     -- Output
-    | opcode ins 4  = do
-                      print $ arg 1
-                      program (n+2) mem
+    04  -> program $ Machine (ip+2) mem i (arg 1 : o)
     -- Jump if true
-    | opcode ins 5 = if arg 1 /= 0 
-                     then program (arg 2) mem
-                     else program (n+3)   mem
+    05 -> if arg 1 /= 0 
+                     then program $ Machine (arg 2) mem i o
+                     else program $ Machine (ip +3) mem i o
     -- Jump if false
-    | opcode ins 6 = if arg 1 == 0
-                     then program (arg 2) mem
-                     else program (n+3)   mem
+    06 -> if arg 1 == 0
+                     then program $ Machine (arg 2) mem i o
+                     else program $ Machine (ip +3) mem i o
     -- Test less than
-    | opcode ins 7 = if arg 1 < arg 2
-                     then program (n+4) $ update (adress 3) 1 mem
-                     else program (n+4) $ update (adress 3) 0 mem
+    07 -> if arg 1 < arg 2
+                     then program $ Machine (ip+4) (update (adress 3) 1 mem) i o
+                     else program $ Machine (ip+4) (update (adress 3) 0 mem) i o
     -- Test equal
-    | opcode ins 8 = if arg 1 == arg 2
-                     then program (n+4) $ update (adress 3) 1 mem
-                     else program (n+4) $ update (adress 3) 0 mem
+    08 -> if arg 1 == arg 2
+                     then program $ Machine (ip+4) (update (adress 3) 1 mem) i o
+                     else program $ Machine (ip+4) (update (adress 3) 0 mem) i o
     -- Halt program 
-    | opcode ins 99 = return mem
-    | otherwise     = error $ "n: " ++ show n ++ " op: " ++ ins
-    where ins         = pad 5 $ show $ mem `immediate` n
+    99 -> m
+    -- Error handling
+    _  -> error $ "ip: " ++ show ip ++ " op: " ++ ins
+    where ins         = pad 5 $ show $ mem `immediate` ip
+          opcode      = read (drop (length ins-2) ins) :: Int
           param       = take (length ins -2) ins
           arg i       = if (param!!(3-i)) == '1' 
-                        then mem `immediate` (n+i)
-                        else mem `pointer` (n+i)
-          adress i    = mem `immediate` (n+i) -- Needed because adress is always immediate
+                        then mem `immediate` (ip+i)
+                        else mem `pointer` (ip+i)
+          adress i    = mem `immediate` (ip+i) -- Needed because adress is always immediate
 
-opcode :: String -> Int -> Bool
-opcode ins op  = let val = read $ (drop $ length ins-2) ins
-                 in  val == op
+data Machine = Machine { ip           :: Int
+                       , memory       :: Seq Int
+                       , input        :: [Int]
+                       , output       :: [Int]
+                       } 
 
 immediate :: Seq Int -> Int -> Int
 mem `immediate` i = mem `index` i
