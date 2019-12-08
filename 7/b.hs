@@ -13,18 +13,15 @@ main = do
         result = maximum $ map (\phase -> ampCycle (setup phase instructions)) combinations
     print result
 
+-- Creates the initial machines, no need to send 0 to A as the default output of E is 0 
 setup :: [Int] -> Seq Int -> [Machine]
-setup phase ins  = [a,b,c,d,e]
-    where a  = run $ Machine 0 ins (Just $ phase!!0) 0
-          b  = run $ Machine 0 ins (Just $ phase!!1) 0
-          c  = run $ Machine 0 ins (Just $ phase!!2) 0
-          d  = run $ Machine 0 ins (Just $ phase!!3) 0
-          e  = run $ Machine 0 ins (Just $ phase!!4) 0
+setup phase ins  = map (\phaseVal -> run (Machine 0 ins (Just phaseVal) 0)) phase
 
+-- Cycles untill halt
 ampCycle :: [Machine] -> Int
 ampCycle [a,b,c,d,e@(Machine ip_e mem_e _ _)]
     | opcode_e == 99 = output e 
-    | otherwise = ampCycle [a2,b2,c2,d2,e2]
+    | otherwise = ampCycle [a2, b2, c2, d2, e2]
     where a2  = run $ Machine (ip a) (memory a) (Just $ output e ) (output a)
           b2  = run $ Machine (ip b) (memory b) (Just $ output a2) (output b)
           c2  = run $ Machine (ip c) (memory c) (Just $ output b2) (output c)
