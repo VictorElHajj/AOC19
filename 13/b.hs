@@ -57,6 +57,7 @@ gameLoop computer = do
            let gm  = interpret computer
                direction = signum (getBallX gm - getPaddleX gm)
                ran = runWith computer direction 
+           clearScreen 
            displayGame gm
            gameLoop ran
 
